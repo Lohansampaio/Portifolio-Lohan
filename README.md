@@ -1,25 +1,31 @@
-# AKIN — Portfólio de Lohan Sampaio
+# AKIN // Portfólio de Engenharia de Software & AI Builder
 
-Produtos digitais, inteligência artificial e automação. Apresentação de Lohan Akin, Embaixador Estudantil Google (nível Expert no programa).
+Portfólio técnico de **Lohan Akin Sampaio Silva** — formado em Jogos Digitais pela UNEB (julho de 2026), Embaixador Estudantil Google e residente em Games pelo CEPEDI.
 
-## Projetos
+- **Portfólio Publicado:** [https://akin-portfolio-seven.vercel.app/](https://akin-portfolio-seven.vercel.app/)
+- **Demo Interativa ROTAS + PARTS:** [`/rotas-parts.html`](./rotas-parts.html)
 
-- Personal Hub: organização de tarefas, projetos, agenda e finanças.
-- JARVIS: assistente pessoal e automação local.
-- Walkie: comunicação por voz na web.
-- ROTAS + PARTS: minijogo educacional criado com Gemini.
-- Editor audiovisual com IA: em desenvolvimento.
+---
 
-## Executar
+## Estrutura do Portfólio
 
-Abra `index.html` no navegador. O site é estático, sem dependências ou etapa de compilação. A captura do minijogo está incorporada no HTML.
+1. **Taxonomia Transparente de IA:**
+   - Diferenciação explícita entre **Produtos com IA Integrada em Execução** (`Personal Hub` via rota server-side `/api/ai/weekly-plan`, `JARVIS`, `Editor de Vídeo com IA`) e **Projetos Construídos com Apoio de IA no Desenvolvimento** (`ROTAS + PARTS`, `Walkie`).
+2. **Projetos Documentados com Evidências e Limitações Reais:**
+   - **01 // Personal Hub (Projeto Principal):** Hub financeiro e de agenda com Planejador Semanal com IA, detecção de conflitos, revisão humana antes de salvar e isolamento de `GEMINI_API_KEY` no servidor (diferenciando `LIVE_GEMINI` de `SIMULATED_FALLBACK`).
+   - **02 // ROTAS + PARTS (`rotas-parts.html`):** Minijogo e laboratório interativo sobre organização dos estudos (**ROTAS**: Compreender, Experimentar, Investigar, Construir) e engenharia de prompts (**PARTS**: Papel, Ação, Referências, Tom, Saída). Executa 100% no navegador sem chamadas de API de LLM em tempo de execução.
+   - **03 // Walkie:** Comunicador PTT em tempo real (PeerJS WebRTC + LiveKit SFU). Documenta com transparência que a transmissão de áudio entre dois aparelhos físicos distintos em redes móveis ainda aguarda bateria de testes de campo.
+   - **04 // JARVIS & 05 // Editor de Vídeo com IA:** Protótipos locais em Python documentados com seus estágios reais de desenvolvimento.
+3. **Documentação de Automação (`#automacao`):**
+   - Fluxo `Entrada de Tarefas → Organização com IA → Revisão Humana → Salvamento na Agenda`, detalhando payload de entrada, contrato JSON de saída, tratamento de erros e justificativa arquitetural (API Route nativa em vez de intermediários externos como n8n/Make).
+4. **Evidências, Roteiros de 90s e Benchmark (`#evidencias`):**
+   - Roteiros cronometrados de até 90 segundos para os 3 projetos principais.
+   - Protocolo de teste comparativo reproduzível (Alocação Manual vs. Fluxo Assistido com Revisão Humana) com registro real de amostra única (`N=1`), sem invenção de usuários ou métricas de produção.
 
-## Publicar na Vercel
+## Como Visualizar Localmente
 
-Importe este repositório em um novo projeto da Vercel. Selecione o preset Other, diretório raiz do repositório, sem comando de instalação ou build, e publique a raiz como saída estática.
+Por ser construído em HTML5, CSS3 e JavaScript Vanilla sem dependências de bundler, basta abrir `index.html` ou `rotas-parts.html` no navegador ou servir o diretório com qualquer servidor estático:
 
-O envio ao GitHub não confirma uma publicação na Vercel.
-
-## Conteúdo e verificação
-
-O link público do Personal Hub está incluído. Seu repositório tem acesso restrito. As descrições distinguem protótipos, recursos documentados e funcionalidades ainda em desenvolvimento. A revisão visual completa desta versão e os testes entre dispositivos do Walkie permanecem pendentes.
+```bash
+npx serve .
+```

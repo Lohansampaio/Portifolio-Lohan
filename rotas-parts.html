@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ROTAS + PARTS — Minijogo Interativo | AKIN</title>
+  <meta name="description" content="Minijogo educacional construído com apoio do Gemini sobre organização dos estudos (ROTAS) e estruturação de prompts (PARTS).">
+  <style>
+    :root {
+      --bg: #0d1013;
+      --panel: #13181e;
+      --panel-alt: #182028;
+      --ink: #edf1f3;
+      --muted: #9aa6b2;
+      --red: #f50109;
+      --red-soft: rgba(245, 1, 9, 0.14);
+      --line: #2c353d;
+      --ok: #38d399;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      color: var(--ink);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.55;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible {
+      outline: 3px solid var(--red);
+      outline-offset: 3px;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      gap: 16px;
+    }
+    .brand {
+      font-family: Consolas, "JetBrains Mono", monospace;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+    }
+    .brand span { color: var(--red); }
+    .backlink {
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .backlink:hover { border-color: var(--red); background: #1d1418; }
+    .hero {
+      padding: 42px 0 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .badge {
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+    }
+    .badge.highlight {
+      border-color: var(--red);
+      background: var(--red-soft);
+      color: #ff8a8e;
+    }
+    h1 {
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+      margin: 0 0 14px;
+    }
+    h1 em { color: var(--red); font-style: normal; }
+    .lead {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 16px;
+      margin: 0;
+    }
+    .honesty-bar {
+      margin-top: 20px;
+      padding: 14px 18px;
+      background: #121921;
+      border-left: 3px solid var(--red);
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      color: #c5d0da;
+    }
+    .honesty-bar strong { color: #fff; font-family: Consolas, monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 0.8px; }
+    .game-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 28px;
+      padding: 36px 0 64px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 24px;
+    }
+    .step-tag {
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .panel h2 {
+      font-size: 22px;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .panel p.sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0 0 20px;
+    }
+    .scenarios {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    .scenario-btn {
+      background: #0d1217;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .scenario-btn:hover, .scenario-btn.active {
+      border-color: var(--red);
+      background: var(--red-soft);
+      color: #fff;
+    }
+    .rotas-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .rota-card {
+      text-align: left;
+      background: #0d1217;
+      border: 1px solid var(--line);
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s, background 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .rota-card:hover {
+      border-color: #5b6b79;
+      transform: translateY(-2px);
+    }
+    .rota-card.selected {
+      border-color: var(--red);
+      background: #1c1216;
+      box-shadow: inset 0 0 0 1px var(--red);
+    }
+    .rota-card .code {
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .rota-card strong { font-size: 16px; }
+    .rota-card small { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .parts-list {
+      display: grid;
+      gap: 14px;
+    }
+    .part-field {
+      background: #0d1217;
+      border: 1px solid var(--line);
+      padding: 14px;
+    }
+    .part-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .part-head label {
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .part-head label b {
+      color: var(--red);
+      margin-right: 6px;
+    }
+    .part-head span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    select, input[type="text"] {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .meter-box {
+      background: #0d1217;
+      border: 1px solid var(--line);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .meter-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .meter-bar {
+      height: 8px;
+      background: #1e262e;
+      overflow: hidden;
+      display: flex;
+    }
+    .meter-fill {
+      height: 100%;
+      background: var(--red);
+      transition: width 0.25s ease;
+    }
+    .Checklist {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .chip {
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+    }
+    .chip.done {
+      border-color: var(--ok);
+      color: var(--ok);
+      background: rgba(56, 211, 153, 0.08);
+    }
+    .prompt-output {
+      background: #090c0f;
+      border: 1px solid var(--line);
+      padding: 18px;
+      font-family: Consolas, "JetBrains Mono", monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      color: #dbe4ec;
+      line-height: 1.65;
+      min-height: 220px;
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .btn-primary {
+      background: var(--red);
+      color: #fff;
+      border: 0;
+      padding: 12px 20px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #c60008; }
+    .btn-secondary {
+      background: #0d1217;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      padding: 12px 18px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: var(--red); }
+    .feedback-box {
+      margin-top: 20px;
+      background: #0d1217;
+      border-left: 3px solid var(--ok);
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 16px;
+      font-size: 13px;
+    }
+    .feedback-box h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-family: Consolas, monospace;
+      text-transform: uppercase;
+      color: var(--ok);
+    }
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 0 40px;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    @media (max-width: 860px) {
+      .game-grid { grid-template-columns: 1fr; }
+      .rotas-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <a href="index.html" class="brand">[ AKIN <span>/</span> ROTAS + PARTS ]</a>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="https://github.com/Lohansampaio/Portifolio-Lohan" target="_blank" rel="noopener noreferrer" class="backlink">Repositório GitHub ↗</a>
+        <a href="index.html#rotas-parts" class="backlink">← Voltar ao Portfólio</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="badge-row">
+        <span class="badge highlight">Minijogo Educacional Interativo</span>
+        <span class="badge">Construído com apoio do Gemini</span>
+        <span class="badge">Execução 100% Client-Side (Sem API em Runtime)</span>
+      </div>
+      <h1>ROTAS + <em>PARTS.</em></h1>
+      <p class="lead">
+        Treine como organizar uma sessão de estudo ou resolução de problemas escolhendo sua <strong>ROTA cognitiva</strong> e estruturando um prompt técnico completo com o método <strong>PARTS</strong>.
+      </p>
+      <div class="honesty-bar">
+        <strong>Nota de Transparência Técnica:</strong> Este minijogo foi projetado e iterado com o apoio do <strong>Google Gemini</strong> para estruturar a mecânica pedagógica, os cenários de estudo e o avaliador determinístico de prompts. A aplicação roda diretamente no navegador sem consumir uma API de LLM em tempo de execução.
+      </div>
+    </section>
+
+    <main class="game-grid">
+      <!-- LADO ESQUERDO: ESCOLHA DA ROTA E MONTAGEM DO PARTS -->
+      <section class="panel" aria-labelledby="step1-title">
+        <span class="step-tag">Etapa 01 / Desafios & Estratégia</span>
+        <h2 id="step1-title">1. Escolha um cenário ou personalize</h2>
+        <p class="sub">Selecione um desafio prático para carregar sugestões ou edite livremente cada bloco abaixo.</p>
+
+        <div class="scenarios" role="group" aria-label="Cenários de exemplo">
+          <button type="button" class="scenario-btn active" data-scenario="estudo_ia">📚 Estudar Arquitetura de Agentes IA</button>
+          <button type="button" class="scenario-btn" data-scenario="debug_api">🛠️ Investigar Bug em Rota Server-Side</button>
+          <button type="button" class="scenario-btn" data-scenario="prototipo_mvp">🚀 Construir MVP de Automação Semanal</button>
+        </div>
+
+        <span class="step-tag">Etapa 02 / Metodologia ROTAS</span>
+        <h2>2. Selecione sua ROTA de aprendizagem</h2>
+        <p class="sub">Qual é o seu objetivo cognitivo neste momento?</p>
+
+        <div class="rotas-grid" role="radiogroup" aria-label="Escolha uma das quatro ROTAS">
+          <button type="button" class="rota-card selected" data-rota="compreender" role="radio" aria-checked="true">
+            <span class="code">ROTA 01</span>
+            <strong>Compreender</strong>
+            <small>Dominar conceitos fundamentais, modelos mentais e relações de causa e efeito antes de codar.</small>
+          </button>
+          <button type="button" class="rota-card" data-rota="experimentar" role="radio" aria-checked="false">
+            <span class="code">ROTA 02</span>
+            <strong>Experimentar</strong>
+            <small>Testar hipóteses rápidas, comparar variações de parâmetros e observar entradas e saídas.</small>
+          </button>
+          <button type="button" class="rota-card" data-rota="investigar" role="radio" aria-checked="false">
+            <span class="code">ROTA 03</span>
+            <strong>Investigar</strong>
+            <small>Diagnosticar falhas, auditar gargalos, levantar evidências e isolar casos de borda.</small>
+          </button>
+          <button type="button" class="rota-card" data-rota="construir" role="radio" aria-checked="false">
+            <span class="code">ROTA 04</span>
+            <strong>Construir</strong>
+            <small>Estruturar código funcional, critérios de aceite, validação de erros e entrega verificável.</small>
+          </button>
+        </div>
+
+        <span class="step-tag">Etapa 03 / Engenharia de Prompt (PARTS)</span>
+        <h2>3. Monte os 5 blocos do PARTS</h2>
+        <p class="sub">Ajuste cada componente para calibrar a precisão da instrução.</p>
+
+        <div class="parts-list">
+          <div class="part-field">
+            <div class="part-head">
+              <label for="part-p"><b>[P]</b> Papel (Persona)</label>
+              <span>Quem a IA deve incorporar?</span>
+            </div>
+            <input type="text" id="part-p" value="Engenheiro de Software Sênior e Mentor de IA Aplicada">
+          </div>
+
+          <div class="part-field">
+            <div class="part-head">
+              <label for="part-a"><b>[A]</b> Ação (Tarefa Central)</label>
+              <span>Verbo claro + objetivo específico</span>
+            </div>
+            <input type="text" id="part-a" value="Explicar o fluxo de integração entre entrada de tarefas, validação de schema JSON e salvamento na agenda">
+          </div>
+
+          <div class="part-field">
+            <div class="part-head">
+              <label for="part-r"><b>[R]</b> Referências (Contexto & Restrições)</label>
+              <span>Dados de entrada, stack e limites</span>
+            </div>
+            <input type="text" id="part-r" value="Projeto Next.js com rota /api/ai/weekly-plan, mantendo chaves no servidor e diferenciando modo real de simulação">
+          </div>
+
+          <div class="part-field">
+            <div class="part-head">
+              <label for="part-t"><b>[T]</b> Tom (Estilo de Comunicação)</label>
+              <span>Registro e nível de profundidade</span>
+            </div>
+            <input type="text" id="part-t" value="Didático, direto, técnico e sem jargões desnecessários">
+          </div>
+
+          <div class="part-field">
+            <div class="part-head">
+              <label for="part-s"><b>[S]</b> Saída (Formato Esperado)</label>
+              <span>Estrutura verificável da resposta</span>
+            </div>
+            <input type="text" id="part-s" value="Mapa em 4 etapas + checklist de validação de erros + exemplo prático de payload JSON">
+          </div>
+        </div>
+      </section>
+
+      <!-- LADO DIREITO: TELEMETRIA DO PROMPT, RESULTADO E SIMULAÇÃO -->
+      <section class="panel" aria-labelledby="output-title">
+        <span class="step-tag">Etapa 04 / Inspeção & Resultado</span>
+        <h2 id="output-title">Diagnóstico de Qualidade do Prompt</h2>
+        <p class="sub">Avaliação em tempo real da completude estrutural (ROTA + 5 dimensões PARTS).</p>
+
+        <div class="meter-box">
+          <div class="meter-top">
+            <span id="score-label">PRECISÃO ESTRUTURAL: 100% (6/6 CRITÉRIOS)</span>
+            <span id="rota-badge" style="color: var(--red);">ROTA: COMPREENDER</span>
+          </div>
+          <div class="meter-bar" aria-hidden="true">
+            <div id="score-fill" class="meter-fill" style="width: 100%;"></div>
+          </div>
+          <div class="Checklist" id="criteria-chips"></div>
+        </div>
+
+        <span class="step-tag">Prompt Estruturado Gerado</span>
+        <pre id="prompt-preview" class="prompt-output" aria-live="polite"></pre>
+
+        <div class="action-row">
+          <button type="button" id="copy-btn" class="btn-primary">Copiar Prompt Estruturado ↗</button>
+          <button type="button" id="simulate-btn" class="btn-secondary">Ver Análise Pedagógica da Rota</button>
+        </div>
+
+        <div id="pedagogical-feedback" class="feedback-box">
+          <h3 id="fb-title">Análise da Combinação: ROTA Compreender + PARTS</h3>
+          <p id="fb-body" style="margin: 0; color: #c5d0da;"></p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>AKIN / MINIJOGO EDUCACIONAL ROTAS + PARTS</span>
+      <span>CONSTRUÍDO COM APOIO DO GEMINI · SEM API EM EXECUÇÃO</span>
+      <a href="index.html">Voltar para akin-portfolio ↗</a>
+    </footer>
+  </div>
+
+  <script>
+    const ROTA_META = {
+      compreender: {
+        name: 'Compreender',
+        directive: 'Priorize clareza conceitual, analogias técnicas precisas, divisão em blocos lógicos e verificação de entendimento antes de avançar para código complexo.',
+        analysis: 'Ao escolher a ROTA Compreender, seu prompt instrui o modelo a não despejar código opaco imediatamente. Ele foca em construir repertório mental sobre o funcionamento do sistema.'
+      },
+      experimentar: {
+        name: 'Experimentar',
+        directive: 'Proponha pequenos testes controlados, variações de entrada/saída e comparações práticas para validar o comportamento rapidamente.',
+        analysis: 'Na ROTA Experimentar, o prompt transforma a IA em um laboratório de hipóteses: ideal para testar limites de prompts, schemas JSON e respostas a entradas inesperadas.'
+      },
+      investigar: {
+        name: 'Investigar',
+        directive: 'Atue de forma diagnóstica: levante hipóteses de falha, verifique estados intermediários, isole variáveis e aponte causas-raiz com evidências.',
+        analysis: 'A ROTA Investigar direciona o prompt para depuração rigorosa e auditoria de segurança (como garantir que chaves de API não vazem para o cliente).'
+      },
+      construir: {
+        name: 'Construir',
+        directive: 'Entregue implementação modular, com tratamento explícito de erros, tipagem clara, critérios de aceite e passos de verificação.',
+        analysis: 'A ROTA Construir orienta o modelo para execução orientada a produto: sair do conceito para um fluxo completo de entrada, processamento, revisão e salvamento.'
+      }
+    };
+
+    const SCENARIOS = {
+      estudo_ia: {
+        rota: 'compreender',
+        p: 'Engenheiro de Software Sênior e Mentor de IA Aplicada',
+        a: 'Explicar o fluxo de integração entre entrada de tarefas, validação de schema JSON e salvamento na agenda',
+        r: 'Projeto Next.js com rota /api/ai/weekly-plan, mantendo chaves no servidor e diferenciando modo real de simulação',
+        t: 'Didático, direto, técnico e sem jargões desnecessários',
+        s: 'Mapa em 4 etapas + checklist de validação de erros + exemplo prático de payload JSON'
+      },
+      debug_api: {
+        rota: 'investigar',
+        p: 'Especialista em Arquitetura Web, Segurança de APIs e Resiliência',
+        a: 'Diagnosticar possíveis falhas de autenticação, timeout e colisão de horários em uma rota de planejamento semanal',
+        r: 'Aplicação React + Next.js integrando Firestore e Google Calendar OAuth, onde credenciais podem estar ausentes no ambiente de demo',
+        t: 'Analítico, objetivo e orientado a prevenção de falhas',
+        s: 'Tabela de riscos (Entrada, Falha, Impacto, Tratamento no Servidor) + guia de fallback seguro'
+      },
+      prototipo_mvp: {
+        rota: 'construir',
+        p: 'Product Builder focado em Automação com IA e Experiência do Usuário',
+        a: 'Estruturar um fluxo onde o usuário revisa e edita a sugestão da IA antes de persistir os eventos no calendário',
+        r: 'Personal Hub com lista de tarefas contendo prazo, prioridade (ALTA, MEDIA, BAIXA) e duração estimada em minutos',
+        t: 'Prático, estruturado e focado em usabilidade mobile e desktop',
+        s: 'Especificação funcional enxuta + estrutura de estados da interface + roteiro de teste de 90 segundos'
+      }
+    };
+
+    let currentRota = 'compreender';
+
+    const inputs = {
+      p: document.getElementById('part-p'),
+      a: document.getElementById('part-a'),
+      r: document.getElementById('part-r'),
+      t: document.getElementById('part-t'),
+      s: document.getElementById('part-s')
+    };
+
+    function updateGame() {
+      const vals = {
+        p: inputs.p.value.trim(),
+        a: inputs.a.value.trim(),
+        r: inputs.r.value.trim(),
+        t: inputs.t.value.trim(),
+        s: inputs.s.value.trim()
+      };
+
+      const checks = [
+        { label: 'ROTA Definida', ok: Boolean(currentRota) },
+        { label: '[P] Papel', ok: vals.p.length >= 8 },
+        { label: '[A] Ação', ok: vals.a.length >= 12 },
+        { label: '[R] Referências', ok: vals.r.length >= 12 },
+        { label: '[T] Tom', ok: vals.t.length >= 5 },
+        { label: '[S] Saída', ok: vals.s.length >= 8 }
+      ];
+
+      const doneCount = checks.filter(c => c.ok).length;
+      const pct = Math.round((doneCount / checks.length) * 100);
+
+      document.getElementById('score-label').textContent = `PRECISÃO ESTRUTURAL: ${pct}% (${doneCount}/6 CRITÉRIOS)`;
+      document.getElementById('rota-badge').textContent = `ROTA: ${ROTA_META[currentRota].name.toUpperCase()}`;
+      document.getElementById('score-fill').style.width = `${pct}%`;
+
+      const chipsContainer = document.getElementById('criteria-chips');
+      chipsContainer.innerHTML = checks.map(c =>
+        `<span class="chip ${c.ok ? 'done' : ''}">${c.ok ? '✓' : '○'} ${c.label}</span>`
+      ).join('');
+
+      const rotaInfo = ROTA_META[currentRota];
+      const promptText =
+`# ESTRATÉGIA COGNITIVA (ROTA: ${rotaInfo.name.toUpperCase()})
+Diretriz da Rota: ${rotaInfo.directive}
+
+# ESTRUTURA DO PROMPT (MÉTODO PARTS)
+- [P] PAPEL: Atue como ${vals.p || '[Defina o papel especialista]'}.
+- [A] AÇÃO: Sua tarefa principal é ${vals.a || '[Descreva a ação central]'}.
+- [R] REFERÊNCIAS E RESTRIÇÕES: Considere o seguinte contexto e limites: ${vals.r || '[Adicione contexto e restrições]'}.
+- [T] TOM: Adote um estilo ${vals.t || '[Defina o tom da resposta]'}.
+- [S] SAÍDA ESPERADA: Estruture a resposta exatamente como: ${vals.s || '[Especifique o formato de saída]'}.`;
+
+      document.getElementById('prompt-preview').textContent = promptText;
+      document.getElementById('fb-title').textContent = `Análise da Combinação: ROTA ${rotaInfo.name} + PARTS`;
+      document.getElementById('fb-body').textContent = rotaInfo.analysis;
+    }
+
+    document.querySelectorAll('.rota-card').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentRota = btn.dataset.rota;
+        document.querySelectorAll('.rota-card').forEach(b => {
+          const active = b === btn;
+          b.classList.toggle('selected', active);
+          b.setAttribute('aria-checked', String(active));
+        });
+        updateGame();
+      });
+    });
+
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sc = SCENARIOS[btn.dataset.scenario];
+        if (!sc) return;
+        document.querySelectorAll('.scenario-btn').forEach(b => b.classList.toggle('active', b === btn));
+        currentRota = sc.rota;
+        document.querySelectorAll('.rota-card').forEach(b => {
+          const active = b.dataset.rota === currentRota;
+          b.classList.toggle('selected', active);
+          b.setAttribute('aria-checked', String(active));
+        });
+        inputs.p.value = sc.p;
+        inputs.a.value = sc.a;
+        inputs.r.value = sc.r;
+        inputs.t.value = sc.t;
+        inputs.s.value = sc.s;
+        updateGame();
+      });
+    });
+
+    Object.values(inputs).forEach(inp => inp.addEventListener('input', updateGame));
+
+    document.getElementById('copy-btn').addEventListener('click', async () => {
+      const text = document.getElementById('prompt-preview').textContent;
+      const btn = document.getElementById('copy-btn');
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = 'Prompt Copiado com Sucesso ✓';
+        setTimeout(() => { btn.textContent = 'Copiar Prompt Estruturado ↗'; }, 2200);
+      } catch (e) {
+        btn.textContent = 'Selecione o texto acima para copiar';
+      }
+    });
+
+    document.getElementById('simulate-btn').addEventListener('click', () => {
+      const fb = document.getElementById('pedagogical-feedback');
+      fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      fb.style.borderColor = '#f50109';
+      setTimeout(() => { fb.style.borderColor = ''; }, 1200);
+    });
+
+    updateGame();
+  </script>
+</body>
+</html>
